@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import "./globals.css"
+import "/Users/erichuang/Documents/GitHub/ac final/cafehopper/cafe-hopper/app/globals.css"
 
 export default function Layout() {
   return (
