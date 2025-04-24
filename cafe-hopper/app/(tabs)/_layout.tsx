@@ -12,7 +12,6 @@ export default function Layout() {
         tabBarInactiveTintColor: 'gray',
         tabBarIcon: ({ color, size, focused }) => {
           let iconName: any;
-
           switch (route.name) {
             case 'index':
               iconName = focused ? 'home' : 'home-outline';
@@ -35,11 +34,31 @@ export default function Layout() {
         },
       })}
     >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="lists" />
-      <Tabs.Screen name="add" />
-      <Tabs.Screen name="friends" />
-      <Tabs.Screen name="profile" />
+      <Tabs.Screen name="index"
+      options = {{
+        title: "Home",
+        headerShown: false 
+      }} />
+      <Tabs.Screen name="lists" 
+      options = {{
+        title: "Lists",
+        headerShown: false 
+      }}/>
+      <Tabs.Screen name="add"
+      options = {{
+        title: "add",
+        headerShown: false 
+      }} />
+      <Tabs.Screen name="friends" 
+      options = {{
+        title: "friends",
+        headerShown: false 
+      }}/>
+      <Tabs.Screen name="profile"
+      options = {{
+        title: "profile",
+        headerShown: false 
+      }} />
     </Tabs>
   );
 }
