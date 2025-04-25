@@ -62,7 +62,9 @@ export default function CafeDetailsScreen() {
       try {
         setLoading(true);
         const cafeId = parseInt(id as string);
+        console.log('Loading cafe with ID:', cafeId); // Debug log
         const cafeData = await getCafeById(cafeId);
+        console.log('Loaded cafe data:', cafeData); // Debug log
         const reviewsData = await getReviewsForCafe(cafeId);
 
         const reviewsWithUsers: Review[] = await Promise.all(
@@ -189,10 +191,40 @@ export default function CafeDetailsScreen() {
           <Text className="text-[#473319] mb-1">{cafe.address}</Text>
           <Text className="text-[#473319] mb-2">Open: {cafe.hours}</Text>
           <ScrollView horizontal className="space-x-2">
-            {cafe.images ? JSON.parse(cafe.images).map((img: string, idx: number) => (
-              <Image key={idx} source={{ uri: img }} className="w-60 h-36 rounded-xl" />
-            )) : (
-              <Image source={{ uri: cafe.image || 'https://source.unsplash.com/800x600/?cafe' }} className="w-60 h-36 rounded-xl" />
+            {cafe.images ? (() => {
+              console.log('Raw images string:', cafe.images); // Debug log
+              let imageUrls: string[];
+              try {
+                // Try parsing as JSON first
+                imageUrls = JSON.parse(cafe.images);
+                console.log('Parsed as JSON:', imageUrls); // Debug log
+              } catch (e) {
+                // If JSON parsing fails, treat as comma-separated string
+                imageUrls = cafe.images.split(',').map((url: string) => url.trim());
+                console.log('Parsed as comma-separated:', imageUrls); // Debug log
+              }
+              return imageUrls.map((img: string, idx: number) => {
+                console.log(`Attempting to load image ${idx}: ${img}`); // Debug log
+                return (
+                  <Image 
+                    key={idx} 
+                    source={{ uri: img }} 
+                    className="w-60 h-36 rounded-xl"
+                    onError={(e) => {
+                      console.error(`Error loading image ${idx}:`, e.nativeEvent.error);
+                      console.error('Failed URL:', img);
+                    }}
+                  />
+                );
+              });
+            })() : (
+              <Image 
+                source={{ uri: cafe.image || 'https://source.unsplash.com/800x600/?cafe' }} 
+                className="w-60 h-36 rounded-xl"
+                onError={(e) => {
+                  console.error('Error loading default image:', e.nativeEvent.error);
+                }}
+              />
             )}
           </ScrollView>
         </View>

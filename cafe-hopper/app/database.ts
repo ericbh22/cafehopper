@@ -62,6 +62,17 @@ export const initDatabase = async () => {
         console.log('Opening database at:', dbPath);
         sqliteDb = await SQLite.openDatabaseAsync('cafes.db');
         console.log('Database initialized successfully');
+
+        // Update Hikari Life images
+        await sqliteDb.runAsync(
+          'UPDATE cafes SET image = ?, images = ? WHERE id = ?',
+          [
+            'https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg?auto=format,compress&w=520&h=390&fit=crop',
+            '["https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg?auto=format,compress&w=520&h=390&fit=crop"]',
+            1
+          ]
+        );
+        console.log('Updated Hikari Life images');
       }
     } catch (error) {
       console.error('Error initializing database:', error);
