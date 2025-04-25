@@ -67,9 +67,9 @@ export const initDatabase = async () => {
         await sqliteDb.runAsync(
           'UPDATE cafes SET image = ?, images = ? WHERE id = ?',
           [
-            'https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg?auto=format,compress&w=520&h=390&fit=crop',
-            '["https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg?auto=format,compress&w=520&h=390&fit=crop"]',
-            1
+            'https://kurasu.kyoto/cdn/shop/articles/DSC08705-1036c2f8-43c9-4596-a0c1-dca7dc27a419-2_1600x.jpg?v=1646708315',
+            '["https://kurasu.kyoto/cdn/shop/articles/DSC08705-1036c2f8-43c9-4596-a0c1-dca7dc27a419-2_1600x.jpg?v=1646708315"]',
+            20145
           ]
         );
         console.log('Updated Hikari Life images');
@@ -91,7 +91,9 @@ export const getCafes = async (): Promise<Cafe[]> => {
 export const getCafeById = async (id: number): Promise<Cafe | null> => {
     if (!sqliteDb) await initDatabase();
     if (!sqliteDb) throw new Error('Database not initialized');
+    console.log('Querying cafe with ID:', id);
     const result = await sqliteDb.getFirstAsync('SELECT * FROM cafes WHERE id = ?', [id]);
+    console.log('Query result:', result);
     return result as Cafe | null;
 };
 
