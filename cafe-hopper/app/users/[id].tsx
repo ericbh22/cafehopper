@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import { getUserById, getReviewsByUserId } from '../database';
 import { getCafeById } from '../database';
+import { defaultProfilePicture } from '../context/user';
 
 interface Review {
     id: string;
@@ -141,7 +142,7 @@ export default function UserProfileScreen() {
             <View className="p-4">
                 <View className="items-center mb-4">
                     <Image
-                        source={{ uri: user.avatar || 'https://i.pravatar.cc/150' }}
+                        source={user.avatar ? { uri: user.avatar } : defaultProfilePicture}
                         className="w-24 h-24 rounded-full mb-2"
                     />
                     <Text className="text-xl font-bold">{user.name}</Text>

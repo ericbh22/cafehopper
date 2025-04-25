@@ -6,7 +6,7 @@ import ReviewForm from '../components/reviewform';
 import { useState, useEffect } from 'react';
 import { getCafeById, getReviewsForCafe, getUserById, updateUserLocation, addReview, getFriends } from '../database';
 import { useCafes } from '../context/cafes';
-import { useUser } from '../context/user';
+import { useUser, defaultProfilePicture } from '../context/user';
 
 interface Review {
   id: string;
@@ -264,9 +264,7 @@ export default function CafeDetailsScreen() {
                   onPress={() => router.push(`/users/${friend.id}`)}
                   className="flex-row items-center gap-1 bg-[#473319]/10 p-2 rounded-lg active:bg-[#473319]/20"
                 >
-                  {friend.avatar && (
-                    <Image source={{ uri: friend.avatar }} className="w-6 h-6 rounded-full" />
-                  )}
+                  <Image source={friend.avatar ? { uri: friend.avatar } : defaultProfilePicture} className="w-6 h-6 rounded-full" />
                   <Text className="text-sm text-[#473319]">{friend.name}</Text>
                 </Pressable>
               ))}
@@ -294,9 +292,7 @@ export default function CafeDetailsScreen() {
         {reviews.map((review) => (
           <View key={review.id} className="mb-3 p-4 bg-white rounded-lg border border-[#473319]/20">
             <View className="flex-row items-center gap-x-2 mb-1">
-              {review.user?.avatar && (
-                <Image source={{ uri: review.user.avatar }} className="w-6 h-6 rounded-full" />
-              )}
+              <Image source={review.user?.avatar ? { uri: review.user.avatar } : defaultProfilePicture} className="w-6 h-6 rounded-full" />
               <Text className="font-bold text-[#473319]">{review.user?.name ?? 'Anonymous'}</Text>
               <Text className="text-xs text-gray-500">
                 {review.timestamp ? review.timestamp.toLocaleDateString('en-AU', {

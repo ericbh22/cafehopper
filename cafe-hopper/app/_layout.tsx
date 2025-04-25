@@ -1,42 +1,41 @@
-import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
-import { initDatabase } from './database';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/AuthContext';
+import { useEffect } from 'react';
+import { router } from 'expo-router';
 import { CafesProvider } from './context/cafes';
 import { UserProvider } from './context/user';
 
-export default function Layout() {
-    const [isInitialized, setIsInitialized] = useState(false);
+function RootLayoutNav() {
+  const { user, loading } = useAuth();
 
-    useEffect(() => {
-        const initialize = async () => {
-            try {
-                await initDatabase();
-                setIsInitialized(true);
-            } catch (error) {
-                console.error('Error initializing database:', error);
-            }
-        };
-        initialize();
-    }, []);
-
-    if (!isInitialized) {
-        return null; // or a loading screen
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/auth/login');
     }
+  }, [user, loading]);
 
-    return (
-        <UserProvider>
-            <CafesProvider>
-            <Stack
-          screenOptions={{
-            headerShown: false,
-            gestureEnabled: true,
-            animation: 'slide_from_right',
-          }}
-        >
-          {/* You can still override specific screens like this if needed */}
-          {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
-        </Stack>
-            </CafesProvider>
-        </UserProvider>
-    );
+  if (loading) {
+    return null; // Or a loading screen
+  }
+
+  return (
+    <Stack>
+      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+      <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <UserProvider>
+        <CafesProvider>
+          <RootLayoutNav />
+        </CafesProvider>
+      </UserProvider>
+    </AuthProvider>
+  );
 } 

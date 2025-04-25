@@ -49,9 +49,7 @@ export default function HomeScreen() {
   };
 
   const filteredCafes = cafes
-    .filter((cafe) =>
-      cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter((cafe) => cafe.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .map((cafe) => ({
       ...cafe,
       avgReview: calculateAvgReview(cafe),

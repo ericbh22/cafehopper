@@ -1,8 +1,12 @@
-import { View, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Image, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getUserById, getReviewsByUserId, getCafeById } from '../database';
-import { useUser } from '../context/user';
+import { useUser, defaultProfilePicture } from '../context/user';
+import { useAuth } from '../context/AuthContext';
+import { auth, db } from '../firebase';
+import { deleteUser } from 'firebase/auth';
+import { doc, deleteDoc } from 'firebase/firestore';
 const reviewIcon = require('../../assets/images/reviewicon.png');
 
 interface Review {
@@ -36,6 +40,7 @@ interface User {
 export default function ProfileScreen() {
   const router = useRouter();
   const { user } = useUser();
+  const { logout } = useAuth();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [currentCafe, setCurrentCafe] = useState<any>(null);
@@ -83,6 +88,49 @@ export default function ProfileScreen() {
     loadData();
   }, [user]);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      'Delete Account',
+      'Are you sure you want to delete your account? This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (!auth.currentUser) {
+                throw new Error('No user logged in');
+              }
+
+              // Delete user document from Firestore
+              await deleteDoc(doc(db, 'users', user?.id || ''));
+
+              // Delete user from Firebase Auth
+              await deleteUser(auth.currentUser);
+
+              // Logout and redirect to login
+              await logout();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to delete account. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -100,7 +148,7 @@ export default function ProfileScreen() {
     <ScrollView className="flex-1 bg-white px-4 pt-12">
       <View className="items-center mb-6">
         <View className="relative">
-          <Image source={{ uri: currentUser.avatar || 'https://i.pravatar.cc/150' }} className="w-24 h-24 rounded-full" />
+          <Image source={currentUser.avatar ? { uri: currentUser.avatar } : defaultProfilePicture} className="w-24 h-24 rounded-full" />
         </View>
         <Text className="text-xl font-bold mt-2">{currentUser.name}</Text>
         {currentUser.location && currentCafe && (
@@ -154,6 +202,22 @@ export default function ProfileScreen() {
             </View>
           ))
         )}
+      </View>
+
+      <View className="mt-8 mb-12">
+        <Pressable
+          onPress={handleLogout}
+          className="bg-[#473319] rounded-lg py-3 px-4 mb-4"
+        >
+          <Text className="text-white text-center font-semibold">Logout</Text>
+        </Pressable>
+        
+        <Pressable
+          onPress={handleDeleteAccount}
+          className="bg-red-500 rounded-lg py-3 px-4"
+        >
+          <Text className="text-white text-center font-semibold">Delete Account</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );

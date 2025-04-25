@@ -5,7 +5,7 @@ import { getUserById, updateUserFriends, getCafeById } from '../database';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useCafes } from '../context/cafes';
-import { useUser } from '../context/user';
+import { useUser, defaultProfilePicture } from '../context/user';
 import SearchBar from '../components/searchbar';
 const iconFriends = require('../../assets/images/friendsicon.png');
 const iconOffline = require('../../assets/images/inactiveicon.png');
@@ -73,7 +73,7 @@ export default function FriendsScreen() {
     if (!text.trim()) return setPotentialFriends([]);
 
     const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('name', '>=', text), where('name', '<=', text + '\uf8ff'));
+    const q = query(usersRef, where('name', '>=', text.toLowerCase()), where('name', '<=', text.toLowerCase() + '\uf8ff'));
     const snap = await getDocs(q);
     const found = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[];
     const ids = new Set(friends.map(f => f.id));
@@ -129,7 +129,7 @@ export default function FriendsScreen() {
           ) : (
             online.map(friend => (
               <Pressable key={friend.id} onPress={() => router.push(`/users/${friend.id}`)} className="flex-row items-center mb-3 p-2 rounded-lg border border-gray-200">
-                <Image source={{ uri: friend.avatar || 'https://i.pravatar.cc/150' }} className="w-10 h-10 rounded-full mr-3" />
+                <Image source={friend.avatar ? { uri: friend.avatar } : defaultProfilePicture} className="w-10 h-10 rounded-full mr-3" />
                 <View>
                   <Text className="font-medium">{friend.name}</Text>
                   {cafeLocations[friend.id] && (
@@ -153,7 +153,7 @@ export default function FriendsScreen() {
           ) : (
             offline.map(friend => (
               <Pressable key={friend.id} onPress={() => router.push(`/users/${friend.id}`)} className="flex-row items-center mb-3 p-2 rounded-lg border border-gray-100">
-                <Image source={{ uri: friend.avatar || 'https://i.pravatar.cc/150' }} className="w-10 h-10 rounded-full mr-3" />
+                <Image source={friend.avatar ? { uri: friend.avatar } : defaultProfilePicture} className="w-10 h-10 rounded-full mr-3" />
                 <Text className="font-medium">{friend.name}</Text>
               </Pressable>
             ))
@@ -181,7 +181,7 @@ export default function FriendsScreen() {
           {potentialFriends.length > 0 ? (
             potentialFriends.map(user => (
               <Pressable key={user.id} onPress={() => addFriend(user.id)} className="flex-row items-center mb-3 p-2 rounded-lg border border-gray-200">
-                <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150' }} className="w-10 h-10 rounded-full mr-3" />
+                <Image source={user.avatar ? { uri: user.avatar } : defaultProfilePicture} className="w-10 h-10 rounded-full mr-3" />
                 <View className="flex-1">
                   <Text className="font-medium">{user.name}</Text>
                 </View>
