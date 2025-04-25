@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { auth, db } from '../firebase';
 import { deleteUser } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
+import AvatarUpload from '../components/AvatarUpload';
 const reviewIcon = require('../../assets/images/reviewicon.png');
 
 interface Review {
@@ -32,7 +33,7 @@ interface Review {
 interface User {
   id: string;
   name: string;
-  location?: string;
+  location: string | null;
   avatar?: string;
   friends?: string[];
 }
@@ -75,7 +76,7 @@ export default function ProfileScreen() {
           setReviews(reviewsWithCafes);
 
           if (userData.location) {
-            const cafeData = await getCafeById(parseInt(userData.location));;
+            const cafeData = await getCafeById(parseInt(userData.location));
             setCurrentCafe(cafeData);
           }
         }
@@ -131,6 +132,15 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleAvatarUpdate = (newAvatar: string) => {
+    if (currentUser) {
+      setCurrentUser({
+        ...currentUser,
+        avatar: newAvatar
+      });
+    }
+  };
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -147,9 +157,11 @@ export default function ProfileScreen() {
   return (
     <ScrollView className="flex-1 bg-white px-4 pt-12">
       <View className="items-center mb-6">
-        <View className="relative">
-          <Image source={currentUser.avatar ? { uri: currentUser.avatar } : defaultProfilePicture} className="w-24 h-24 rounded-full" />
-        </View>
+        <AvatarUpload
+          currentAvatar={currentUser.avatar}
+          userId={currentUser.id}
+          onAvatarUpdate={handleAvatarUpdate}
+        />
         <Text className="text-xl font-bold mt-2">{currentUser.name}</Text>
         {currentUser.location && currentCafe && (
           <Pressable onPress={() => router.push(`/cafe/${currentCafe.id}`)} className="mt-2">

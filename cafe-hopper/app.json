@@ -10,14 +10,23 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.macathon.cafehopper"
+      "bundleIdentifier": "com.macathon.cafehopper",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow Cafe Hopper to access your photos to set your profile picture.",
+        "NSCameraUsageDescription": "Allow Cafe Hopper to access your camera to take a profile picture."
+      }
     },
     "android": {
       "package": "com.macathon.cafehopper",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +44,14 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Cafe Hopper to access your photos to set your profile picture.",
+          "cameraPermission": "Allow Cafe Hopper to access your camera to take a profile picture."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
