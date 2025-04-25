@@ -133,25 +133,20 @@ export default function FriendsScreen() {
 
 
   return (
-    <ScrollView className="flex-1 bg-white px-4 pt-12">
+    <ScrollView className="flex-1 bg-white px-4 pt-12" keyboardDismissMode='on-drag'>
       <View className="flex-row justify-between items-center mb-4">
-        <Text className="text-2xl font-bold">👥 Friends</Text>
+        <Text className="text-2xl font-bold">👥 Hoppers</Text>
         <Pressable
           onPress={() => setShowAddModal(true)}
-          className="px-4 py-1 bg-blue-600 rounded-full"
+          className="px-4 py-1 bg-[#473319] rounded-full"
         >
           <Text className="text-white font-medium text-sm">Add</Text>
         </Pressable>
       </View>
 
       {/* Search Bar */}
-      <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2 mb-4">
-        <TextInput
-          placeholder="Search friends..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          className="flex-1 text-base text-gray-700"
-        />
+      <View className="flex-1" >
+        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder = {"Search Hoppers..."}/>
       </View>
 
       {/* Online Friends */}

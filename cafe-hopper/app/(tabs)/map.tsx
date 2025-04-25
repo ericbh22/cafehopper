@@ -115,6 +115,7 @@ export default function MapScreen() {
   return (
         <View className="flex-1">
     <MapView
+        
         showsUserLocation
       style={{ flex: 1 }}
                 initialRegion={region}

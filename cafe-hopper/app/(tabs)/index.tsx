@@ -98,20 +98,34 @@ export default function HomeScreen() {
     <View className="px-4 pt-12">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search Cafes..." />
         </View>
         <Pressable
           onPress={() => setShowDropdown((prev) => !prev)}
-          className="ml-2 px-3 py-2 bg-gray-200 rounded-full"
+          className="ml-2 px-3 py-2 bg-[#f7dbb2] border border-[#473319] rounded-full"
         >
-          <Ionicons name="filter" size={18} color="black" />
+          <Ionicons name="filter" size={18} color="#473319" />
         </Pressable>
       </View>
+
       {showDropdown && (
         <View className="mb-4 bg-gray-100 rounded-lg px-3 py-2">
           {['default', 'rating', 'distance'].map((mode) => (
-            <Pressable key={mode} onPress={() => { setSortMode(mode as SortMode); setShowDropdown(false); }} className="py-1">
-              <Text className={`text-sm ${sortMode === mode ? 'font-semibold text-blue-600' : 'text-gray-800'}`}>{mode === 'default' ? 'Relevance' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+            <Pressable
+              key={mode}
+              onPress={() => {
+                setSortMode(mode as SortMode);
+                setShowDropdown(false);
+              }}
+              className="py-1"
+            >
+              <Text
+                className={`text-sm ${
+                  sortMode === mode ? 'font-semibold text-blue-600' : 'text-gray-800'
+                }`}
+              >
+                {mode === 'default' ? 'Relevance' : mode.charAt(0).toUpperCase() + mode.slice(1)}
+              </Text>
             </Pressable>
           ))}
         </View>

@@ -8,7 +8,6 @@ export default function Layout() {
       screenOptions={({ route }) => ({
         headerStyle: { backgroundColor: '#473319' },
         headerTintColor: '#f7dbb2',
-        headerTransparent: true,
         gestureEnabled: true,
         headerShown: false,
         tabBarShowLabel: false,

@@ -10,13 +10,14 @@ interface SearchBarProps {
 
 export default function SearchBar({ value, onChange, placeholder }: SearchBarProps) {
   return (
-    <View className="flex-row items-center bg-gray-100 rounded-full px-4 py-2">
-      <Ionicons name="search" size={20} color="gray" style={{ marginRight: 8 }} />
+    <View className="flex-row items-center bg-[#f7dbb2] border-2 border-[#473319] rounded-full px-5 py-3 mb-4">
+      <Ionicons name="search" size={20} color="#473319" style={{ marginRight: 8 }} />
       <TextInput
-        placeholder="Search cafes..."
+        placeholder={placeholder}
+        placeholderTextColor="#795f3e"
+        className="flex-1 text-base text-[#473319]"
         value={value}
         onChangeText={onChange}
-        className="flex-1 text-base text-gray-700"
       />
     </View>
   );
