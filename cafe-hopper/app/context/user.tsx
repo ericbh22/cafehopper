@@ -4,7 +4,7 @@ import { getUserById } from '../database';
 interface User {
     id: string;
     name: string;
-    location?: string;
+    location: string | null;
     avatar?: string;
     friends?: string[];
 }

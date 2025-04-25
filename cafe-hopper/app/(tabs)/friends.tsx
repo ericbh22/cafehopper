@@ -27,7 +27,7 @@ interface Cafe {
 
 export default function FriendsScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [friendsSearchQuery, setFriendsSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [addQuery, setAddQuery] = useState('');
   const { user, loading: userLoading, refreshUser } = useUser();
@@ -101,7 +101,7 @@ export default function FriendsScreen() {
 
   if (!user) return <Text className="p-4">User not found</Text>;
 
-  const filteredFriends = friends.filter(f => f.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredFriends = friends.filter(f => f.name.toLowerCase().includes(friendsSearchQuery.toLowerCase()));
   const online = filteredFriends.filter(f => !!f.location);
   const offline = filteredFriends.filter(f => !f.location);
 
@@ -115,7 +115,7 @@ export default function FriendsScreen() {
       </View>
 
       <View className="flex-1">
-        <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search Hoppers..." />
+        <SearchBar value={friendsSearchQuery} onChange={setFriendsSearchQuery} placeholder="Search Hoppers..." />
       </View>
 
       <View className="border-2 rounded-xl border-[#473319] bg-[#f7dbb2]/20 p-4 mb-6">

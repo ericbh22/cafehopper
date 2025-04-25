@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ReviewForm from '../components/reviewform';
 import { useState, useEffect } from 'react';
-import { getCafeById, getReviewsForCafe, getUserById, updateUserLocation, addReview } from '../database';
+import { getCafeById, getReviewsForCafe, getUserById, updateUserLocation, addReview, getFriends } from '../database';
 import { useCafes } from '../context/cafes';
 import { useUser } from '../context/user';
 
@@ -40,14 +40,14 @@ interface ReviewInput {
 interface User {
   id: string;
   name: string;
-  location?: string;
+  location: string | null;
   avatar?: string;
   friends?: string[];
 }
 
 export default function CafeDetailsScreen() {
   const { id } = useLocalSearchParams();
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
   const { cafes } = useCafes();
   const [cafe, setCafe] = useState<any>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -55,6 +55,7 @@ export default function CafeDetailsScreen() {
   const [isHere, setIsHere] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [friendsHere, setFriendsHere] = useState<User[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -62,9 +63,7 @@ export default function CafeDetailsScreen() {
       try {
         setLoading(true);
         const cafeId = parseInt(id as string);
-        console.log('Loading cafe with ID:', cafeId); // Debug log
         const cafeData = await getCafeById(cafeId);
-        console.log('Loaded cafe data:', cafeData); // Debug log
         const reviewsData = await getReviewsForCafe(cafeId);
 
         const reviewsWithUsers: Review[] = await Promise.all(
@@ -101,6 +100,11 @@ export default function CafeDetailsScreen() {
         if (user) {
           setCurrentUser(user);
           setIsHere(user.location === id);
+          
+          // Load friends who are at this location
+          const friends = await getFriends(user.id);
+          const friendsAtLocation = friends.filter(friend => friend?.location === id);
+          setFriendsHere(friendsAtLocation as User[]);
         }
       } catch (err) {
         console.error('Error loading cafe data:', err);
@@ -109,14 +113,27 @@ export default function CafeDetailsScreen() {
       }
     };
     loadData();
-  }, [id]);
+  }, [id, user]);
 
   const handleStudyToggle = async () => {
     if (!currentUser) return;
     try {
       const newLocation = isHere ? null : id as string;
-      await updateUserLocation(currentUser.id, newLocation);
-      setIsHere(!isHere);
+      const success = await updateUserLocation(currentUser.id, newLocation);
+      if (success) {
+        setIsHere(!isHere);
+        // Update the current user's location in the context
+        if (currentUser) {
+          setCurrentUser({
+            ...currentUser,
+            location: newLocation
+          });
+          // Refresh the user context to update the global state
+          await refreshUser();
+        }
+      } else {
+        console.error('Failed to update user location');
+      }
     } catch (error) {
       console.error('Error updating user location:', error);
     }
@@ -192,19 +209,15 @@ export default function CafeDetailsScreen() {
           <Text className="text-[#473319] mb-2">Open: {cafe.hours}</Text>
           <ScrollView horizontal className="space-x-2">
             {cafe.images ? (() => {
-              console.log('Raw images string:', cafe.images); // Debug log
               let imageUrls: string[];
               try {
                 // Try parsing as JSON first
                 imageUrls = JSON.parse(cafe.images);
-                console.log('Parsed as JSON:', imageUrls); // Debug log
               } catch (e) {
                 // If JSON parsing fails, treat as comma-separated string
                 imageUrls = cafe.images.split(',').map((url: string) => url.trim());
-                console.log('Parsed as comma-separated:', imageUrls); // Debug log
               }
               return imageUrls.map((img: string, idx: number) => {
-                console.log(`Attempting to load image ${idx}: ${img}`); // Debug log
                 return (
                   <Image 
                     key={idx} 
@@ -219,7 +232,7 @@ export default function CafeDetailsScreen() {
               });
             })() : (
               <Image 
-                source={{ uri: cafe.image || 'https://source.unsplash.com/800x600/?cafe' }} 
+                source={{ uri: cafe.image || 'https://www.upmenu.com/wp-content/uploads/2022/08/Small-Cafe-Interior-Design.jpg' }} 
                 className="w-60 h-36 rounded-xl"
                 onError={(e) => {
                   console.error('Error loading default image:', e.nativeEvent.error);
@@ -242,9 +255,25 @@ export default function CafeDetailsScreen() {
         )}
 
         <View className="border-2 border-[#473319] rounded-xl bg-[#f7dbb2]/20 p-4 mb-4">
-          <Text className="text-lg font-semibold text-[#473319] mb-2">Who's here now</Text>
-          <Text className="text-sm text-[#473319] mb-1">👥 Friends: {cafe.friendsHere?.join(', ') || 'None'}</Text>
-          <Text className="text-sm text-[#473319]">Public users: {cafe.publicUsers}</Text>
+          <Text className="text-lg font-semibold text-[#473319] mb-2">Friends Here</Text>
+          {friendsHere.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              {friendsHere.map((friend) => (
+                <Pressable
+                  key={friend.id}
+                  onPress={() => router.push(`/users/${friend.id}`)}
+                  className="flex-row items-center gap-1 bg-[#473319]/10 p-2 rounded-lg active:bg-[#473319]/20"
+                >
+                  {friend.avatar && (
+                    <Image source={{ uri: friend.avatar }} className="w-6 h-6 rounded-full" />
+                  )}
+                  <Text className="text-sm text-[#473319]">{friend.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : (
+            <Text className="text-sm text-[#473319]">No friends currently here</Text>
+          )}
         </View>
 
         {currentUser && (

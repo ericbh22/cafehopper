@@ -113,7 +113,7 @@ export interface Review {
       publicUsers: 2,
       images: [
         "https://source.unsplash.com/800x600/?coffee",
-        "https://source.unsplash.com/800x600/?cafe"
+        "https://www.upmenu.com/wp-content/uploads/2022/08/Small-Cafe-Interior-Design.jpg"
       ]
     },
     {

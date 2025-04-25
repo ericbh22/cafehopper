@@ -103,12 +103,14 @@ export default function ProfileScreen() {
           <Image source={{ uri: currentUser.avatar || 'https://i.pravatar.cc/150' }} className="w-24 h-24 rounded-full" />
         </View>
         <Text className="text-xl font-bold mt-2">{currentUser.name}</Text>
-        {currentCafe && (
-          <View className="flex-row items-center mt-2">
-            <Text className="text-base text-[#473319] font-medium bg-[#f7dbb2] rounded-md px-2 py-0.5 border border-[#473319]">
-              📍{currentCafe.name}
-            </Text>
-          </View>
+        {currentUser.location && currentCafe && (
+          <Pressable onPress={() => router.push(`/cafe/${currentCafe.id}`)} className="mt-2">
+            <View className="flex-row items-center">
+              <Text className="text-base text-[#473319] font-medium bg-[#f7dbb2] rounded-md px-2 py-0.5 border border-[#473319]">
+                📍{currentCafe.name}
+              </Text>
+            </View>
+          </Pressable>
         )}
         <View className="flex-row justify-center items-center gap-x-6 mt-3">
           <View className="flex-row items-center">

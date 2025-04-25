@@ -18,7 +18,7 @@ interface CafeWithComputed extends Partial<Cafe> {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [cafesSearchQuery, setCafesSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -70,8 +70,8 @@ export default function HomeScreen() {
 
   const filteredCafes = cafes
     .filter(cafe =>
-      cafe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cafe.address.toLowerCase().includes(searchQuery.toLowerCase())
+      cafe.name.toLowerCase().includes(cafesSearchQuery.toLowerCase()) ||
+      cafe.address.toLowerCase().includes(cafesSearchQuery.toLowerCase())
     )
     .map(cafe => ({
       ...cafe,
@@ -118,7 +118,7 @@ export default function HomeScreen() {
       <View className="flex-1 px-4 pt-12" >
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-1">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search Cafes..." />
+            <SearchBar value={cafesSearchQuery} onChange={setCafesSearchQuery} placeholder="Search Cafes..." />
           </View>
           <Pressable
             onPress={() => setShowDropdown(prev => !prev)}
@@ -138,9 +138,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {searchQuery.length > 0 && (
+        {cafesSearchQuery.length > 0 && (
           <Text className="text-sm text-gray-500 mb-2">
-            Currently searching: <Text className="font-semibold text-gray-700">"{searchQuery}"</Text>
+            Currently searching: <Text className="font-semibold text-gray-700">"{cafesSearchQuery}"</Text>
           </Text>
         )}
 

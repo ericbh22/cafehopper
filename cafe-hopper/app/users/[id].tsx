@@ -41,6 +41,7 @@ export default function UserProfileScreen() {
     const [reviews, setReviews] = useState<Review[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [currentCafe, setCurrentCafe] = useState<any>(null);
 
     useEffect(() => {
         loadUserData();
@@ -53,6 +54,10 @@ export default function UserProfileScreen() {
             const userData = await getUserById(id as string);
             if (userData) {
                 setUser(userData);
+                if (userData.location) {
+                    const cafeData = await getCafeById(parseInt(userData.location));
+                    setCurrentCafe(cafeData);
+                }
                 const userReviews = await getReviewsByUserId(id as string);
                 const reviewsWithCafes = await Promise.all(
                     userReviews.map(async (review) => {
@@ -140,14 +145,19 @@ export default function UserProfileScreen() {
                         className="w-24 h-24 rounded-full mb-2"
                     />
                     <Text className="text-xl font-bold">{user.name}</Text>
-      </View>
-
-                {user.location && (
-                    <View className="mb-4">
-                        <Text className="text-lg font-semibold mb-2">Current Location</Text>
-                        {/* You'll need to fetch the cafe data here */}
-      </View>
-                )}
+                    {currentCafe && (
+                        <Pressable 
+                            onPress={() => router.push(`/cafe/${currentCafe.id}`)}
+                            className="mt-2"
+                        >
+                            <View className="flex-row items-center">
+                                <Text className="text-base text-[#473319] font-medium bg-[#f7dbb2] rounded-md px-2 py-0.5 border border-[#473319]">
+                                    📍{currentCafe.name}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    )}
+                </View>
 
                 <View className="mb-4">
                     <Text className="text-lg font-semibold mb-2">Reviews</Text>
@@ -163,10 +173,10 @@ export default function UserProfileScreen() {
                                 </Pressable>
                             )}
                             <Text className="text-sm text-gray-600">{review.comment}</Text>
-                            <View className="flex-row mt-2">
+                            <View className="flex-row justify-between flex-wrap gap-y-1 mt-2">
                                 {Object.entries(review.ratings).map(([key, value]) => (
-                                    <Text key={key} className="text-sm text-gray-500 mr-4">
-                                        {key}: {value}
+                                    <Text key={key} className="text-xs text-gray-700">
+                                        {key === 'ambience' ? '⭐️' : key === 'drinks' ? '☕' : key === 'service' ? '🤝' : '🔇'} {value}
                                     </Text>
                                 ))}
                             </View>
