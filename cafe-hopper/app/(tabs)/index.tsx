@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import { useCafes } from '../context/cafes';
 import { Cafe } from '../database';
+import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 
 type SortMode = 'default' | 'rating' | 'distance';
 
@@ -112,8 +113,9 @@ export default function HomeScreen() {
   );
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-white">
-      <View className="flex-1 px-4 pt-12">
+      <View className="flex-1 px-4 pt-12" >
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-1">
             <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search Cafes..." />
@@ -156,5 +158,6 @@ export default function HomeScreen() {
         />
       </View>
     </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }

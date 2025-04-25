@@ -106,7 +106,7 @@ export default function FriendsScreen() {
   const offline = filteredFriends.filter(f => !f.location);
 
   return (
-    <ScrollView className="flex-1 bg-white px-4 pt-12">
+    <ScrollView className="flex-1 bg-white px-4 pt-12" keyboardDismissMode='on-drag'>
       <View className="flex-row justify-between items-center mb-4">
         <Text className="text-2xl font-bold">👥 Hoppers</Text>
         <Pressable onPress={() => setShowAddModal(true)} className="px-4 py-1 bg-[#473319] rounded-full">

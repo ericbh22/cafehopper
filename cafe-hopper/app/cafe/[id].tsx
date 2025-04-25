@@ -178,35 +178,36 @@ export default function CafeDetailsScreen() {
           <Pressable onPress={() => router.back()} className="p-1 rounded-full">
             <Ionicons name="chevron-back" size={24} color="#1c1c1e" />
           </Pressable>
-          <Text className="text-2xl font-bold">{cafe.name}</Text>
+          <Text className="text-2xl font-bold text-[#473319]">{cafe.name}</Text>
         </View>
 
-        <Text className="text-gray-500 mb-2">{cafe.address}</Text>
-        <Text className="text-gray-400 mb-4">Open: {cafe.hours}</Text>
-
-        <ScrollView horizontal className="mb-4 space-x-2">
-          {cafe.images ? JSON.parse(cafe.images).map((img: string, idx: number) => (
-            <Image key={idx} source={{ uri: img }} className="w-60 h-36 rounded-xl" />
-          )) : (
-            <Image source={{ uri: cafe.image || 'https://source.unsplash.com/800x600/?cafe' }} className="w-60 h-36 rounded-xl" />
-          )}
-        </ScrollView>
+        <View className="mb-4 border-2 border-[#473319] rounded-xl bg-[#f7dbb2]/30 p-4">
+          <Text className="text-[#473319] mb-1">{cafe.address}</Text>
+          <Text className="text-[#473319] mb-2">Open: {cafe.hours}</Text>
+          <ScrollView horizontal className="space-x-2">
+            {cafe.images ? JSON.parse(cafe.images).map((img: string, idx: number) => (
+              <Image key={idx} source={{ uri: img }} className="w-60 h-36 rounded-xl" />
+            )) : (
+              <Image source={{ uri: cafe.image || 'https://source.unsplash.com/800x600/?cafe' }} className="w-60 h-36 rounded-xl" />
+            )}
+          </ScrollView>
+        </View>
 
         {reviews.length > 0 && (
-          <View className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
-            <Text className="font-semibold text-base mb-2">Overall Ratings</Text>
+          <View className="border-2 border-[#473319] rounded-xl bg-[#f7dbb2]/20 p-4 mb-4">
+            <Text className="font-semibold text-[#473319] mb-2">Overall Ratings</Text>
             <View className="flex flex-wrap flex-row gap-y-2">
-              <View className="w-1/2"><Text className="text-sm">⭐️ Ambience: {averages.ambience}</Text></View>
-              <View className="w-1/2"><Text className="text-sm">☕ Drinks: {averages.drinks}</Text></View>
-              <View className="w-1/2"><Text className="text-sm">🤝 Service: {averages.service}</Text></View>
-              <View className="w-1/2"><Text className="text-sm">🔇 Sound: {averages.sound}</Text></View>
+              <Text className="w-1/2 text-sm text-[#473319]">⭐️ Ambience: {averages.ambience}</Text>
+              <Text className="w-1/2 text-sm text-[#473319]">☕ Drinks: {averages.drinks}</Text>
+              <Text className="w-1/2 text-sm text-[#473319]">🤝 Service: {averages.service}</Text>
+              <Text className="w-1/2 text-sm text-[#473319]">🔇 Sound: {averages.sound}</Text>
             </View>
           </View>
         )}
 
-        <Text className="text-lg font-semibold mt-4">Who's here now</Text>
-        <Text className="mb-1">👥 Friends: {cafe.friendsHere?.join(', ') || 'None'}</Text>
-        <Text className="text-gray-500 mb-2">Public users: {cafe.publicUsers}</Text>
+        <Text className="text-lg font-semibold text-[#473319] mt-4">Who's here now</Text>
+        <Text className="mb-1 text-[#473319]">👥 Friends: {cafe.friendsHere?.join(', ') || 'None'}</Text>
+        <Text className="text-sm text-[#473319] mb-2">Public users: {cafe.publicUsers}</Text>
 
         {currentUser && (
           <Pressable
@@ -219,17 +220,17 @@ export default function CafeDetailsScreen() {
           </Pressable>
         )}
 
-        <Text className="text-base font-semibold mt-4">Leave a Review</Text>
+        <Text className="text-base font-semibold text-[#473319] mt-4">Leave a Review</Text>
         <ReviewForm onSubmit={submitReview} />
 
-        <Text className="text-lg font-semibold mb-2 pt-4">Reviews</Text>
+        <Text className="text-lg font-semibold text-[#473319] mb-2 pt-4">Reviews</Text>
         {reviews.map((review) => (
-          <View key={review.id} className="mb-3 p-3 bg-gray-100 rounded-lg">
+          <View key={review.id} className="mb-3 p-4 bg-white rounded-lg border border-[#473319]/20">
             <View className="flex-row items-center gap-x-2 mb-1">
               {review.user?.avatar && (
                 <Image source={{ uri: review.user.avatar }} className="w-6 h-6 rounded-full" />
               )}
-              <Text className="font-bold">{review.user?.name ?? 'Anonymous'}</Text>
+              <Text className="font-bold text-[#473319]">{review.user?.name ?? 'Anonymous'}</Text>
               <Text className="text-xs text-gray-500">
                 {review.timestamp ? review.timestamp.toLocaleDateString('en-AU', {
                   day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -238,14 +239,12 @@ export default function CafeDetailsScreen() {
             </View>
             <View className="flex-row justify-between flex-wrap gap-y-1 mb-1">
               {Object.entries(review.ratings).map(([key, value]) => (
-                <View key={key} className="flex-row items-center">
-                  <Text className="text-xs text-gray-700">
-                    {key === 'ambience' ? '⭐️' : key === 'drinks' ? '☕' : key === 'service' ? '🤝' : '🔇'} {value}
-                  </Text>
-                </View>
+                <Text key={key} className="text-xs text-[#473319]">
+                  {key === 'ambience' ? '⭐️' : key === 'drinks' ? '☕' : key === 'service' ? '🤝' : '🔇'} {value}
+                </Text>
               ))}
             </View>
-            <Text className="text-sm">{review.comment}</Text>
+            <Text className="text-sm text-[#473319]">{review.comment}</Text>
           </View>
         ))}
       </ScrollView>

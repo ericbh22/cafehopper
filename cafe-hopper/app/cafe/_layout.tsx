@@ -6,6 +6,7 @@ export default function CafeLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        title: '',
         gestureEnabled: true,
         gestureDirection: 'horizontal',
         animation: 'slide_from_right',
