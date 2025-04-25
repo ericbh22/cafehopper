@@ -1,29 +1,84 @@
 import { View, Text, ScrollView, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { cafes } from "../data/data";
-import { users } from "../data/user";
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { getCurrentUser } from '../context/currentUser';
 import * as Location from 'expo-location';
+import { getUserById, getReviewsByUserId } from '../database';
+import { getCafeById } from '../database';
+
+interface Review {
+    id: string;
+    cafeId: string;
+    userId: string;
+    comment: string;
+    ratings: {
+        ambience?: number;
+        service?: number;
+        sound?: number;
+        drinks?: number;
+    };
+    timestamp: any;
+    cafe?: {
+        id: number;
+        name: string;
+        address: string;
+        area: string;
+    };
+}
+
+interface User {
+    id: string;
+    name: string;
+    location?: string;
+    avatar?: string;
+    friends?: string[];
+}
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams();
-  const user = users.find((u) => u.id === id);
   const router = useRouter();
-
+    const [user, setUser] = useState<User | null>(null);
+    const [reviews, setReviews] = useState<Review[]>([]);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  
-    // Get all reviews left by the current user
-    const userReviews = cafes.flatMap(cafe =>
-      cafe.reviews.filter(review => review.userId === user?.id).map(review => ({
-        ...review,
-        cafeName: cafe.name
-      }))
-    );
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    (async () => {
+    useEffect(() => {
+        loadUserData();
+        getLocation();
+    }, [id]);
+
+    const loadUserData = async () => {
+        try {
+            setLoading(true);
+            const userData = await getUserById(id as string);
+            if (userData) {
+                setUser(userData);
+                const userReviews = await getReviewsByUserId(id as string);
+                const reviewsWithCafes = await Promise.all(
+                    userReviews.map(async (review) => {
+                        const cafe = await getCafeById(parseInt(review.cafeId));
+                        return {
+        ...review,
+                            cafe: cafe ? {
+                                id: cafe.id,
+                                name: cafe.name,
+                                address: cafe.address,
+                                area: cafe.area
+                            } : undefined
+                        };
+                    })
+                );
+                setReviews(reviewsWithCafes);
+            }
+        } catch (error) {
+            console.error('Error loading user data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getLocation = async () => {
+        try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
         const location = await Location.getCurrentPositionAsync({});
@@ -32,80 +87,96 @@ export default function UserProfileScreen() {
           longitude: location.coords.longitude,
         });
       }
-    })();
-  }, []);
+        } catch (error) {
+            console.error('Error getting location:', error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <View className="flex-1 items-center justify-center">
+                <Text>Loading...</Text>
+            </View>
+        );
+    }
 
   if (!user) {
     return <Text className="p-4">User not found 😢</Text>;
   }
 
-  const cafe = cafes.find((c) => c.id === user.location);
-
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const toRad = (x: number) => (x * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+        const R = 6371; // Radius of the earth in km
+        const dLat = deg2rad(lat2 - lat1);
+        const dLon = deg2rad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const d = R * c; // Distance in km
+        return d.toFixed(1);
+    };
 
-  const distance =
-    cafe && userLocation
-      ? calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          cafe.location.latitude,
-          cafe.location.longitude
-        ).toFixed(2)
-      : null;
+    const deg2rad = (deg: number) => {
+        return deg * (Math.PI / 180);
+    };
 
   return (
-    <ScrollView className="flex-1 bg-white px-4 pt-12">
-      <View className="flex-row items-center gap-x-2 mb-2">
-        <Pressable onPress={() => router.back()} className="p-1 rounded-full">
-          <Ionicons name="chevron-back" size={24} color="#1c1c1e" />
+        <ScrollView className="flex-1 bg-white">
+            <Stack.Screen
+                options={{
+                    title: user.name,
+                    headerRight: () => (
+                        <Pressable onPress={() => router.push('/settings')}>
+                            <Ionicons name="settings-outline" size={24} color="black" />
         </Pressable>
+                    ),
+                }}
+            />
+            
+            <View className="p-4">
+                <View className="items-center mb-4">
+                    <Image
+                        source={{ uri: user.avatar || 'https://i.pravatar.cc/150' }}
+                        className="w-24 h-24 rounded-full mb-2"
+                    />
+                    <Text className="text-xl font-bold">{user.name}</Text>
       </View>
 
-      <View className="items-center mb-6">
-        <Image source={{ uri: user.avatar }} className="w-24 h-24 rounded-full mb-2" />
-        <Text className="text-2xl font-bold">{user.name}</Text>
+                {user.location && (
+                    <View className="mb-4">
+                        <Text className="text-lg font-semibold mb-2">Current Location</Text>
+                        {/* You'll need to fetch the cafe data here */}
       </View>
+                )}
 
-      {cafe ? (
-        <>
-          <Text className="text-lg font-semibold mb-2 text-green-600">Currently Studying At</Text>
-          <Text className="text-base mb-1">📍 {cafe.name}</Text>
-          <Text className="text-sm text-gray-500 mb-1">{cafe.address}</Text>
-          {distance && (
-            <Text className="text-sm text-gray-700 mb-2">
-              📏 {distance} km away from you
-            </Text>
-          )}
-        </>
-      ) : (
-        <Text className="text-gray-500">Not currently studying at any cafe.</Text>
-      )}
-      <Text className="text-lg font-semibold mb-2">Past Reviews</Text>
-      {userReviews.length === 0 ? (
-        <Text className="text-gray-500">No reviews yet.</Text>
-      ) : (
-        userReviews.map((review, idx) => (
-          <View key={idx} className="mb-4 p-4 bg-gray-100 rounded-lg">
-            <Text className="font-semibold mb-1">{review.cafeName}</Text>
-            <View className="flex-row justify-between flex-wrap gap-y-1 mb-1">
-              <Text className="text-xs text-gray-700">⭐️ {review.ratings.ambience}</Text>
-              <Text className="text-xs text-gray-700">☕ {review.ratings.drinks}</Text>
-              <Text className="text-xs text-gray-700">🤝 {review.ratings.service}</Text>
-              <Text className="text-xs text-gray-700">🔇 {review.ratings.sound}</Text>
+                <View className="mb-4">
+                    <Text className="text-lg font-semibold mb-2">Reviews</Text>
+                    {reviews.map((review) => (
+                        <View key={review.id} className="mb-4 p-4 bg-gray-50 rounded-lg">
+                            {review.cafe && (
+                                <Pressable 
+                                    onPress={() => router.push(`/cafe/${review.cafeId}`)}
+                                    className="mb-2"
+                                >
+                                    <Text className="font-semibold text-blue-600">{review.cafe.name}</Text>
+                                    <Text className="text-sm text-gray-500">{review.cafe.area}</Text>
+                                </Pressable>
+                            )}
+                            <Text className="text-sm text-gray-600">{review.comment}</Text>
+                            <View className="flex-row mt-2">
+                                {Object.entries(review.ratings).map(([key, value]) => (
+                                    <Text key={key} className="text-sm text-gray-500 mr-4">
+                                        {key}: {value}
+                                    </Text>
+                                ))}
+                            </View>
+                            <Text className="text-xs text-gray-400 mt-2">
+                                {new Date(review.timestamp?.toDate()).toLocaleDateString()}
+                            </Text>
+                        </View>
+                    ))}
+                </View>
             </View>
-            <Text className="text-sm">{review.comment}</Text>
-          </View>
-        ))
-      )}
     </ScrollView>
   );
 }

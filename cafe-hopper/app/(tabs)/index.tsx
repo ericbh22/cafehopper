@@ -1,83 +1,101 @@
-import { ScrollView, View, Text, Image, Pressable } from 'react-native';
-import { cafes } from '../data/data';
-import { useRouter } from 'expo-router';
+import { View, Text, Image, Pressable, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SearchBar from '../components/searchbar';
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
+import { useCafes } from '../context/cafes';
+import { Cafe } from '../database';
+
 type SortMode = 'default' | 'rating' | 'distance';
+
+interface CafeWithComputed extends Partial<Cafe> {
+    id: number;
+    avgReview: number;
+    distance: string | null;
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>('default');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
+  const { cafes, loading } = useCafes();
+
   useEffect(() => {
-    (async () => {
+    getLocation();
+  }, []);
+
+  const getLocation = async () => {
+    try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+
         const location = await Location.getCurrentPositionAsync({});
         setUserLocation({
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
-      }
-    })();
-  }, []);
-
-  const calculateAvgReview = (cafe: typeof cafes[number]) => {
-    if (!cafe.reviews || cafe.reviews.length === 0) return 0;
-    let total = 0;
-    cafe.reviews.forEach((r) => {
-      const values = Object.values(r.ratings);
-      total += values.reduce((a, b) => a + b, 0) / values.length;
-    });
-    return total / cafe.reviews.length;
+    } catch (error) {
+      console.error('Error getting location:', error);
+    }
   };
-
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const toRad = (x: number) => (x * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const d = R * c; // Distance in km
+    return d.toFixed(1);
   };
 
+  const deg2rad = (deg: number) => {
+    return deg * (Math.PI / 180);
+  };
+
+  const calculateAvgReview = (cafe: any) => {
+    if (!cafe.reviews || cafe.reviews.length === 0) return 0;
+    const total = cafe.reviews.reduce((sum: number, review: any) => {
+      const ratings = Object.values(review.ratings) as number[];
+      return sum + ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length;
+    }, 0);
+    return total / cafe.reviews.length;
+  };
   
   const filteredCafes = cafes
     .filter((cafe) =>
-      cafe.name.toLowerCase().includes(searchQuery.toLowerCase())
+      cafe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cafe.address.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .map((cafe) => ({
       ...cafe,
+      id: parseInt(cafe.id),
       avgReview: calculateAvgReview(cafe),
       distance:
         userLocation &&
         calculateDistance(
           userLocation.latitude,
           userLocation.longitude,
-          cafe.location.latitude,
-          cafe.location.longitude
+          cafe.latitude,
+          cafe.longitude
         ),
     }))
     .sort((a, b) => {
       if (sortMode === 'rating') return b.avgReview - a.avgReview;
-      if (sortMode === 'distance') return (a.distance ?? 0) - (b.distance ?? 0);
+      if (sortMode === 'distance') return (parseFloat(a.distance ?? '0') - parseFloat(b.distance ?? '0'));
       return 0;
     });
 
-
-
-  return (
-    <ScrollView
-      className="flex-1 bg-white px-4 pt-12"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ minHeight: '100%', paddingBottom: 24 }}
-    >
+  const renderHeader = () => (
+    <View className="px-4 pt-12">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-1">
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
@@ -99,7 +117,7 @@ export default function HomeScreen() {
         </View>
       )}
       
-      {searchQuery.length > 0 && ( // note we have to add stuff regarding loading, error etc later when we add a backend  
+      {searchQuery.length > 0 && (
         <Text className="text-sm text-gray-500 mb-2">
           Currently searching: <Text className="font-semibold text-gray-700">"{searchQuery}"</Text>
         </Text>
@@ -108,26 +126,92 @@ export default function HomeScreen() {
       <Text className="text-xl font-bold mb-4">
         Showing {filteredCafes.length} venue{filteredCafes.length !== 1 ? 's' : ''}
       </Text>
+    </View>
+  );
 
-      {filteredCafes.map((item) => ( // so now we only map the filetered cafes, not all cafes, which is all cafes that are queried 
-        <Pressable
-          key={item.id}
-          onPress={() => router.push(`/cafe/${item.id}`)}
-          className="mb-6 rounded-2xl overflow-hidden bg-white shadow"
-        >
-          <View className="relative">
-            <Image source={{ uri: item.image }} className="h-48 w-full" resizeMode="cover" />
+  const renderCafe = ({ item }: { item: CafeWithComputed }) => (
+    <Link href={`/cafe/${item.id}`} asChild>
+      <TouchableOpacity className="p-4 border-b border-gray-200">
+        <View className="flex-row">
+          <Image
+            source={{ uri: item.image || 'https://via.placeholder.com/100' }}
+            className="w-20 h-20 rounded-lg"
+          />
+          <View className="ml-4 flex-1">
+            <Text className="text-lg font-bold">{item.name}</Text>
+            <Text className="text-gray-600">{item.address}</Text>
+            <Text className="text-gray-500">{item.area}</Text>
+            {item.distance && (
+              <Text className="text-sm text-gray-500">{item.distance} km away</Text>
+            )}
+            {item.avgReview > 0 && (
+              <View className="flex-row items-center mt-1">
+                <Ionicons name="star" size={16} color="#fbbf24" />
+                <Text className="text-sm text-gray-600 ml-1">{item.avgReview.toFixed(1)}</Text>
+              </View>
+            )}
           </View>
+        </View>
+      </TouchableOpacity>
+    </Link>
+  );
 
-          <View className="p-4">
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-lg font-semibold">{item.name}</Text>
-              <Ionicons name="heart-outline" size={20} color="gray" />
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-base text-gray-700">Loading venues...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      className="flex-1 bg-white"
+    >
+      <View className="flex-1">
+        <View className="px-4 pt-12">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-1">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </View>
-            <Text className="text-gray-500 text-xs mt-1">Dine-in • Takeaway</Text>
+            <Pressable
+              onPress={() => setShowDropdown((prev) => !prev)}
+              className="ml-2 px-3 py-2 bg-gray-200 rounded-full"
+            >
+              <Ionicons name="filter" size={18} color="black" />
+            </Pressable>
           </View>
-        </Pressable>
-      ))}
-    </ScrollView>
+          {showDropdown && (
+            <View className="mb-4 bg-gray-100 rounded-lg px-3 py-2">
+              {['default', 'rating', 'distance'].map((mode) => (
+                <Pressable key={mode} onPress={() => { setSortMode(mode as SortMode); setShowDropdown(false); }} className="py-1">
+                  <Text className={`text-sm ${sortMode === mode ? 'font-semibold text-blue-600' : 'text-gray-800'}`}>{mode === 'default' ? 'Relevance' : mode.charAt(0).toUpperCase() + mode.slice(1)}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          
+          {searchQuery.length > 0 && (
+            <Text className="text-sm text-gray-500 mb-2">
+              Currently searching: <Text className="font-semibold text-gray-700">"{searchQuery}"</Text>
+            </Text>
+          )}
+
+          <Text className="text-xl font-bold mb-4">
+            Showing {filteredCafes.length} venue{filteredCafes.length !== 1 ? 's' : ''}
+          </Text>
+        </View>
+
+        <FlatList<CafeWithComputed>
+          data={filteredCafes}
+          renderItem={renderCafe}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
