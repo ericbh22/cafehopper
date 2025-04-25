@@ -6,21 +6,21 @@ export default function Layout() {
   return (
     <Tabs
       screenOptions={({ route }) => ({
+        gestureEnabled: true,
         headerShown: false,
         tabBarShowLabel: false,
         tabBarActiveTintColor: 'black',
         tabBarInactiveTintColor: 'gray',
+        tabBarStyle: {
+          height: 50, // ↓ smaller height (default is ~83)
+          paddingBottom: 4,
+          paddingTop: 4,
+        },
         tabBarIcon: ({ color, size, focused }) => {
           let iconName: any;
           switch (route.name) {
             case 'index':
               iconName = focused ? 'home' : 'home-outline';
-              break;
-            case 'lists':
-              iconName = focused ? 'list' : 'list-outline';
-              break;
-            case 'add':
-              iconName = focused ? 'add-circle' : 'add-circle-outline';
               break;
             case 'friends':
               iconName = focused ? 'people' : 'people-outline';
@@ -28,6 +28,9 @@ export default function Layout() {
             case 'profile':
               iconName = focused ? 'person' : 'person-outline';
               break;
+              case 'map':
+                iconName = focused ? 'map' : 'map-outline';
+                break;
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -39,15 +42,10 @@ export default function Layout() {
         title: "Home",
         headerShown: false 
       }} />
-      <Tabs.Screen name="lists" 
+      <Tabs.Screen name="map"
       options = {{
-        title: "Lists",
-        headerShown: false 
-      }}/>
-      <Tabs.Screen name="add"
-      options = {{
-        title: "add",
-        headerShown: false 
+        title: "map",
+        headerShown: false,
       }} />
       <Tabs.Screen name="friends" 
       options = {{
@@ -59,6 +57,7 @@ export default function Layout() {
         title: "profile",
         headerShown: false 
       }} />
+
     </Tabs>
   );
 }

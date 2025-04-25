@@ -1,0 +1,68 @@
+import { ScrollView, View, Text, Image, Pressable, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import SearchBar from '../components/searchbar';
+import { useCafes } from '../hooks/useCafes';
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const { cafes, loading } = useCafes();
+
+  const filteredCafes = cafes.filter((cafe) =>
+    cafe.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  console.log("Component rendering, loading state:", loading);
+console.log("Cafes count:", cafes.length);
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#555" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      className="flex-1 bg-white px-4 pt-12"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ minHeight: '100%', paddingBottom: 24 }}
+    >
+      <SearchBar value={searchQuery} onChange={setSearchQuery} />
+
+      <Text className="text-xl font-bold mb-4">Showing {filteredCafes.length} venues</Text>
+
+      {filteredCafes.map((item) => (
+        <Pressable
+          key={item.id}
+          onPress={() => router.push(`/cafe/${item.id}`)}
+          className="mb-6 rounded-2xl overflow-hidden bg-white shadow"
+        >
+          <View className="relative">
+            <Image source={{ uri: item.image || 'https://source.unsplash.com/800x600/?cafe' }} className="h-48 w-full" resizeMode="cover" />
+            <View className="absolute top-2 left-2">
+              {(item.promo || []).map((label, index) => (
+                <View key={index} className="bg-red-500 px-2 py-1 rounded mb-1">
+                  <Text className="text-white text-xs font-bold">{label}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View className="p-4">
+            <View className="flex-row justify-between items-center mb-1">
+              <Text className="text-lg font-semibold">{item.name}</Text>
+              <Ionicons name="heart-outline" size={20} color="gray" />
+            </View>
+            <Text className="text-gray-600">{item.distance || 'Unknown'} Away</Text>
+            <Text className="text-gray-500 text-xs mt-1" numberOfLines={1}>
+              {(item.tags || []).join(', ')}
+            </Text>
+            <Text className="text-gray-500 text-xs mt-1">Dine-in • Takeaway</Text>
+          </View>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
