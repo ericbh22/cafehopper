@@ -26,9 +26,16 @@ export default function Layout() {
     return (
         <UserProvider>
             <CafesProvider>
-                <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false, title: '' }} />
-                </Stack>
+            <Stack
+          screenOptions={{
+            headerShown: false,
+            gestureEnabled: true,
+            animation: 'slide_from_right',
+          }}
+        >
+          {/* You can still override specific screens like this if needed */}
+          {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
+        </Stack>
             </CafesProvider>
         </UserProvider>
     );

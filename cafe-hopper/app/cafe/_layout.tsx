@@ -1,3 +1,4 @@
+// app/cafe/_layout.tsx or app/_layout.tsx
 import { Stack } from 'expo-router';
 import "../globals.css";
 
@@ -10,9 +11,10 @@ export default function CafeLayout() {
         gestureEnabled: true,
         gestureDirection: 'horizontal',
         animation: 'slide_from_right',
-        // This is important - use the native stack presentation
         presentation: 'modal',
       }}
-    />
+    >
+      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+    </Stack>
   );
 }

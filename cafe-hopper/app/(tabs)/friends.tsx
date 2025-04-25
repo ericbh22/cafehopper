@@ -133,7 +133,7 @@ export default function FriendsScreen() {
                 <View>
                   <Text className="font-medium">{friend.name}</Text>
                   {cafeLocations[friend.id] && (
-                    <Text className="text-sm text-blue-600">📍 {cafeLocations[friend.id].name}</Text>
+                    <Text className="text-sm text-[#473319]">📍 {cafeLocations[friend.id].name}</Text>
                   )}
                 </View>
               </Pressable>

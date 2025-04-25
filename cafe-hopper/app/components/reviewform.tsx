@@ -4,10 +4,10 @@ import { Review } from '../data/data';
 import { Ionicons } from '@expo/vector-icons';
 import StarRating from './starrating';
 import { currentUserId } from '../context/currentUser';
+
 interface ReviewFormProps {
   onSubmit: (review: Review) => void;
 }
-
 
 const criteriaList = ['ambience', 'service', 'sound', 'drinks'] as const;
 type Criteria = typeof criteriaList[number];
@@ -26,7 +26,7 @@ export default function ReviewForm({ onSubmit }: ReviewFormProps) {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const handleSubmit = () => {
-    onSubmit({ userId: currentUserId , comment, ratings: rating });
+    onSubmit({ userId: currentUserId, comment, ratings: rating });
     setRating(initialRatings);
     setComment('');
     setCurrentIndex(0);
@@ -55,7 +55,7 @@ export default function ReviewForm({ onSubmit }: ReviewFormProps) {
     <View className="mt-2">
       {/* Category Slider */}
       <Animated.View
-        className="border rounded-xl p-4 bg-gray-50"
+        className="border-2 border-[#473319] rounded-xl p-4 bg-[#f7dbb2]/20"
         style={{ opacity: fadeAnim }}
       >
         <View className="flex-row justify-between items-center mb-2">
@@ -67,11 +67,11 @@ export default function ReviewForm({ onSubmit }: ReviewFormProps) {
             <Ionicons
               name="chevron-back"
               size={20}
-              color={currentIndex === 0 ? 'lightgray' : 'black'}
+              color={currentIndex === 0 ? 'lightgray' : '#473319'}
             />
           </Pressable>
 
-          <Text className="text-sm font-semibold capitalize">{currentCriteria}</Text>
+          <Text className="text-sm font-semibold capitalize text-[#473319]">{currentCriteria}</Text>
 
           <Pressable
             disabled={currentIndex === criteriaList.length - 1}
@@ -81,7 +81,7 @@ export default function ReviewForm({ onSubmit }: ReviewFormProps) {
             <Ionicons
               name="chevron-forward"
               size={20}
-              color={currentIndex === criteriaList.length - 1 ? 'lightgray' : 'black'}
+              color={currentIndex === criteriaList.length - 1 ? 'lightgray' : '#473319'}
             />
           </Pressable>
         </View>
@@ -94,18 +94,18 @@ export default function ReviewForm({ onSubmit }: ReviewFormProps) {
           />
         </View>
       </Animated.View>
-
-      {/* Textbox + Submit (outside container) */}
+      {/* Textbox + Submit */}
       <TextInput
         placeholder="Leave a comment..."
         multiline
-        className="border border-gray-300 rounded-lg p-2 text-sm mt-3"
+        className="border border-[#473319] rounded-lg p-2 text-sm mt-3 text-[#473319]"
         value={comment}
         onChangeText={setComment}
+        placeholderTextColor="#a3a3a3"
       />
       <Pressable
         onPress={handleSubmit}
-        className="bg-blue-600 py-2 px-4 rounded-lg mt-2"
+        className="bg-[#473319] py-2 px-4 rounded-lg mt-2"
       >
         <Text className="text-white font-semibold text-center">Submit Review</Text>
       </Pressable>

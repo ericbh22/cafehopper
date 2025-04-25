@@ -135,7 +135,7 @@ export default function ProfileScreen() {
             <View key={review.id} className="mb-4 p-4 bg-white rounded-lg border border-[#eee]">
               {review.cafe && (
                 <Pressable onPress={() => router.push(`/cafe/${review.cafeId}`)} className="mb-2">
-                  <Text className="font-semibold text-blue-600">{review.cafe.name}</Text>
+                  <Text className="font-semibold text-[#473319]">{review.cafe.name}</Text>
                   <Text className="text-sm text-gray-500">{review.cafe.area}</Text>
                 </Pressable>
               )}

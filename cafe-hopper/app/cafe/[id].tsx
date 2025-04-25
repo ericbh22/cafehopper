@@ -96,6 +96,10 @@ export default function CafeDetailsScreen() {
 
         setCafe(cafeData);
         setReviews(reviewsWithUsers);
+        if (user) {
+          setCurrentUser(user);
+          setIsHere(user.location === id);
+        }
       } catch (err) {
         console.error('Error loading cafe data:', err);
       } finally {
@@ -205,14 +209,16 @@ export default function CafeDetailsScreen() {
           </View>
         )}
 
-        <Text className="text-lg font-semibold text-[#473319] mt-4">Who's here now</Text>
-        <Text className="mb-1 text-[#473319]">👥 Friends: {cafe.friendsHere?.join(', ') || 'None'}</Text>
-        <Text className="text-sm text-[#473319] mb-2">Public users: {cafe.publicUsers}</Text>
+        <View className="border-2 border-[#473319] rounded-xl bg-[#f7dbb2]/20 p-4 mb-4">
+          <Text className="text-lg font-semibold text-[#473319] mb-2">Who's here now</Text>
+          <Text className="text-sm text-[#473319] mb-1">👥 Friends: {cafe.friendsHere?.join(', ') || 'None'}</Text>
+          <Text className="text-sm text-[#473319]">Public users: {cafe.publicUsers}</Text>
+        </View>
 
         {currentUser && (
           <Pressable
             onPress={handleStudyToggle}
-            className={`${isHere ? 'bg-red-500' : 'bg-green-500'} px-4 py-2 rounded-full self-start mb-4`}
+            className={`${isHere ? 'bg-red-700' : 'bg-[#473319]'} px-4 py-2 rounded-full self-start mb-4`}
           >
             <Text className="text-white font-medium">
               {isHere ? '❌ Stop Study Session' : '📍 Studying Here!'}
