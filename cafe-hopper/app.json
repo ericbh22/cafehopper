@@ -38,6 +38,10 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "assetBundlePatterns": [
+      "**/*",
+      "cafes.db"
+    ]
   }
 }
