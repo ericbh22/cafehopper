@@ -20,12 +20,21 @@ function RootLayoutNav() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/register" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <UserProvider>
+        <CafesProvider>
+        <Stack
+      screenOptions={{
+        headerShown: false,
+        gestureEnabled: true,
+        animation: 'slide_from_right',
+      }}
+    >
+      {/* You can still override specific screens like this if needed */}
+      {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
     </Stack>
-  );
+        </CafesProvider>
+    </UserProvider>
+);
 }
 
 export default function RootLayout() {

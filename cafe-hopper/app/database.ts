@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
@@ -232,6 +232,173 @@ export const updateUserFriends = async (userId: string, friends: string[]) => {
         return true;
     } catch (error) {
         console.error('Error updating user friends:', error);
+        return false;
+    }
+};
+
+// Friend request operations
+export const checkExistingRequest = async (fromUserId: string, toUserId: string) => {
+    try {
+        const requestsRef = collection(db, 'friendRequests');
+        const q = query(
+            requestsRef,
+            where('fromUserId', '==', fromUserId),
+            where('toUserId', '==', toUserId),
+            where('status', '==', 'pending')
+        );
+        const snapshot = await getDocs(q);
+        return !snapshot.empty;
+    } catch (error) {
+        console.error('Error checking existing request:', error);
+        return false;
+    }
+};
+
+export const sendFriendRequest = async (fromUserId: string, toUserId: string) => {
+    try {
+        // Check if request already exists
+        const exists = await checkExistingRequest(fromUserId, toUserId);
+        if (exists) return false;
+
+        const friendRequestRef = doc(collection(db, 'friendRequests'));
+        await setDoc(friendRequestRef, {
+            fromUserId,
+            toUserId,
+            status: 'pending',
+            createdAt: new Date()
+        });
+        return true;
+    } catch (error) {
+        console.error('Error sending friend request:', error);
+        return false;
+    }
+};
+
+export const cancelFriendRequest = async (requestId: string) => {
+    try {
+        await deleteDoc(doc(db, 'friendRequests', requestId));
+        return true;
+    } catch (error) {
+        console.error('Error canceling friend request:', error);
+        return false;
+    }
+};
+
+export const acceptFriendRequest = async (requestId: string) => {
+    try {
+        const requestRef = doc(db, 'friendRequests', requestId);
+        const requestDoc = await getDoc(requestRef);
+        
+        if (!requestDoc.exists()) return false;
+        
+        const request = requestDoc.data();
+        const fromUserId = request.fromUserId;
+        const toUserId = request.toUserId;
+        
+        // Update both users' friends lists
+        const fromUser = await getUserById(fromUserId);
+        const toUser = await getUserById(toUserId);
+        
+        if (!fromUser || !toUser) return false;
+        
+        // Create new friends arrays with the new friend
+        const fromUserFriends = [...new Set([...(fromUser.friends || []), toUserId])];
+        const toUserFriends = [...new Set([...(toUser.friends || []), fromUserId])];
+        
+        // Update both users' friends lists in parallel
+        await Promise.all([
+            updateUserFriends(fromUserId, fromUserFriends),
+            updateUserFriends(toUserId, toUserFriends)
+        ]);
+        
+        // Delete the friend request
+        await deleteDoc(requestRef);
+        
+        return true;
+    } catch (error) {
+        console.error('Error accepting friend request:', error);
+        return false;
+    }
+};
+
+export const getFriendRequests = async (userId: string) => {
+    try {
+        const requestsRef = collection(db, 'friendRequests');
+        const q = query(
+            requestsRef,
+            where('toUserId', '==', userId),
+            where('status', '==', 'pending')
+        );
+        const snapshot = await getDocs(q);
+        
+        const requests = await Promise.all(
+            snapshot.docs.map(async (doc) => {
+                const data = doc.data();
+                const fromUser = await getUserById(data.fromUserId);
+                return {
+                    id: doc.id,
+                    fromUser,
+                    toUser: null,
+                    createdAt: data.createdAt.toDate()
+                };
+            })
+        );
+        
+        return requests;
+    } catch (error) {
+        console.error('Error getting friend requests:', error);
+        return [];
+    }
+};
+
+export const getSentFriendRequests = async (userId: string) => {
+    try {
+        const requestsRef = collection(db, 'friendRequests');
+        const q = query(
+            requestsRef,
+            where('fromUserId', '==', userId),
+            where('status', '==', 'pending')
+        );
+        const snapshot = await getDocs(q);
+        
+        const requests = await Promise.all(
+            snapshot.docs.map(async (doc) => {
+                const data = doc.data();
+                const toUser = await getUserById(data.toUserId);
+                return {
+                    id: doc.id,
+                    fromUser: null,
+                    toUser,
+                    createdAt: data.createdAt.toDate()
+                };
+            })
+        );
+        
+        return requests;
+    } catch (error) {
+        console.error('Error getting sent friend requests:', error);
+        return [];
+    }
+};
+
+export const removeFriend = async (userId: string, friendId: string) => {
+    try {
+        const user = await getUserById(userId);
+        const friend = await getUserById(friendId);
+        
+        if (!user || !friend) return false;
+        
+        // Remove friend from user's friends list
+        const userFriends = user.friends?.filter(id => id !== friendId) || [];
+        await updateUserFriends(userId, userFriends);
+        
+        // Remove user from friend's friends list
+        const friendFriends = friend.friends?.filter(id => id !== userId) || [];
+        await updateUserFriends(friendId, friendFriends);
+        
+        return true;
+    } catch (error) {
+        console.error('Error removing friend:', error);
         return false;
     }
 }; 
