@@ -63,16 +63,34 @@ export const initDatabase = async () => {
         sqliteDb = await SQLite.openDatabaseAsync('cafes.db');
         console.log('Database initialized successfully');
 
-        // Update Hikari Life images
+        // Update cafe images
         await sqliteDb.runAsync(
           'UPDATE cafes SET image = ?, images = ? WHERE id = ?',
           [
-            'https://kurasu.kyoto/cdn/shop/articles/DSC08705-1036c2f8-43c9-4596-a0c1-dca7dc27a419-2_1600x.jpg?v=1646708315',
-            '["https://kurasu.kyoto/cdn/shop/articles/DSC08705-1036c2f8-43c9-4596-a0c1-dca7dc27a419-2_1600x.jpg?v=1646708315"]',
-            20145
+            'https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg',
+            '["https://imgix.theurbanlist.com/content/general/cheri_julian_lallo-11.jpg"]',
+            1
           ]
         );
-        console.log('Updated Hikari Life images');
+
+        await sqliteDb.runAsync(
+          'UPDATE cafes SET image = ?, images = ? WHERE id = ?',
+          [
+            'https://cdn.qthotels.com/wp-content/uploads/sites/101/2019/08/16130840/Pascale-into-Bar-scaled.jpg',
+            '["https://cdn.qthotels.com/wp-content/uploads/sites/101/2019/08/16130840/Pascale-into-Bar-scaled.jpg"]',
+            2
+          ]
+        );
+
+        await sqliteDb.runAsync(
+          'UPDATE cafes SET image = ?, images = ? WHERE id = ?',
+          [
+            'https://whatson.melbourne.vic.gov.au/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsiZGF0YSI6IjlhN2FhNjQ4LTFhMDktNGUzMC1hNWEwLWM4OGUzOTQ1ZWE0NSIsInB1ciI6ImJsb2JfaWQifX0=--4e365d1276a2cc736c048c205885f663ca667bc3/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJqcGciLCJyZXNpemVfdG9fbGltaXQiOlsxMDAwLDYwMF19LCJwdXIiOiJ2YXJpYXRpb24ifX0=--0d1dec94e96bf59e4e90ca4a7c11e516560ab297/efab83a6-656b-4985-9fa2-24d94bb9d075.jpg',
+            '["https://whatson.melbourne.vic.gov.au/rails/active_storage/representations/proxy/eyJfcmFpbHMiOnsiZGF0YSI6IjlhN2FhNjQ4LTFhMDktNGUzMC1hNWEwLWM4OGUzOTQ1ZWE0NSIsInB1ciI6ImJsb2JfaWQifX0=--4e365d1276a2cc736c048c205885f663ca667bc3/eyJfcmFpbHMiOnsiZGF0YSI6eyJmb3JtYXQiOiJqcGciLCJyZXNpemVfdG9fbGltaXQiOlsxMDAwLDYwMF19LCJwdXIiOiJ2YXJpYXRpb24ifX0=--0d1dec94e96bf59e4e90ca4a7c11e516560ab297/efab83a6-656b-4985-9fa2-24d94bb9d075.jpg"]',
+            3
+          ]
+        );
+        console.log('Updated cafe images');
       }
     } catch (error) {
       console.error('Error initializing database:', error);
@@ -91,9 +109,7 @@ export const getCafes = async (): Promise<Cafe[]> => {
 export const getCafeById = async (id: number): Promise<Cafe | null> => {
     if (!sqliteDb) await initDatabase();
     if (!sqliteDb) throw new Error('Database not initialized');
-    console.log('Querying cafe with ID:', id);
     const result = await sqliteDb.getFirstAsync('SELECT * FROM cafes WHERE id = ?', [id]);
-    console.log('Query result:', result);
     return result as Cafe | null;
 };
 
