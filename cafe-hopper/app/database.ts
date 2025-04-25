@@ -43,50 +43,32 @@ interface Review {
 // Initialize SQLite
 export const initDatabase = async () => {
     try {
-        if (!sqliteDb) {
-            // Load the database file from the assets
-            const dbAsset = Asset.fromModule(require('../assets/cafes.db'));
-            await dbAsset.downloadAsync();
-            
-            // Copy the database to the app's document directory
-            const dbPath = `${FileSystem.documentDirectory}SQLite/cafes.db`;
-            await FileSystem.copyAsync({
-                from: dbAsset.localUri!,
-                to: dbPath
-            });
-            
-            console.log('Opening database at:', dbPath);
-            sqliteDb = await SQLite.openDatabaseAsync('cafes.db');
-            
-            // Create table if it doesn't exist
-            await sqliteDb.runAsync(
-                `CREATE TABLE IF NOT EXISTS cafes (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT,
-                    address TEXT,
-                    area TEXT,
-                    latitude REAL,
-                    longitude REAL,
-                    hours TEXT,
-                    image TEXT,
-                    images TEXT,
-                    indoor_seating INTEGER,
-                    outdoor_seating INTEGER,
-                    public_users INTEGER,
-                    industry TEXT,
-                    tags TEXT
-                )`,
-                []
-            );
-            
-            console.log('Database initialized successfully');
+      if (!sqliteDb) {
+        const dbAsset = Asset.fromModule(require('../assets/cafes.db'));
+        await dbAsset.downloadAsync();
+  
+        const dbPath = `${FileSystem.documentDirectory}SQLite/cafes.db`;
+  
+        const fileInfo = await FileSystem.getInfoAsync(dbPath);
+        if (!fileInfo.exists) {
+          // Copy only if not already there
+          await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}SQLite`, { intermediates: true });
+          await FileSystem.copyAsync({
+            from: dbAsset.localUri!,
+            to: dbPath,
+          });
         }
+  
+        console.log('Opening database at:', dbPath);
+        sqliteDb = await SQLite.openDatabaseAsync('cafes.db');
+        console.log('Database initialized successfully');
+      }
     } catch (error) {
-        console.error('Error initializing database:', error);
-        throw error;
+      console.error('Error initializing database:', error);
+      throw error;
     }
-};
-
+  };
+  
 // Cafe operations
 export const getCafes = async (): Promise<Cafe[]> => {
     if (!sqliteDb) await initDatabase();

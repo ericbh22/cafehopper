@@ -12,8 +12,8 @@ interface Cafe {
     id: string;
     name: string;
     address: string;
-    latitude: string;
-    longitude: string;
+    latitude: number;
+    longitude: number;
 }
 
 export default function MapScreen() {
@@ -34,8 +34,8 @@ export default function MapScreen() {
         return cafes.map((cafe) => ({
             id: cafe.id,
             coordinate: {
-                latitude: parseFloat(cafe.latitude),
-                longitude: parseFloat(cafe.longitude),
+                latitude: (cafe.latitude),
+                longitude: (cafe.longitude),
             },
             title: cafe.name,
             description: cafe.address,
@@ -115,7 +115,6 @@ export default function MapScreen() {
   return (
         <View className="flex-1">
     <MapView
-        
         showsUserLocation
       style={{ flex: 1 }}
                 initialRegion={region}

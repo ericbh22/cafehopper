@@ -1,158 +1,158 @@
-// ProfileScreen.tsx
-import { View, Text, ScrollView, Image, Pressable } from 'react-native';
+import { View, Text, ScrollView, Image, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getUserById, getReviewsByUserId, getCafeById } from '../database';
 import { useUser } from '../context/user';
+const reviewIcon = require('../../assets/images/reviewicon.png');
 
 interface Review {
-    id: string;
-    cafeId: string;
-    userId: string;
-    comment: string;
-    ratings: {
-        ambience?: number;
-        service?: number;
-        sound?: number;
-        drinks?: number;
-    };
-    timestamp: any;
-    cafe?: {
-        id: number;
-        name: string;
-        address: string;
-        area: string;
-    };
+  id: string;
+  cafeId: string;
+  userId: string;
+  comment: string;
+  ratings: {
+    ambience?: number;
+    service?: number;
+    sound?: number;
+    drinks?: number;
+  };
+  timestamp: any;
+  cafe?: {
+    id: number;
+    name: string;
+    address: string;
+    area: string;
+  };
 }
 
 interface User {
-    id: string;
-    name: string;
-    location?: string;
-    avatar?: string;
-    friends?: string[];
+  id: string;
+  name: string;
+  location?: string;
+  avatar?: string;
+  friends?: string[];
 }
 
 export default function ProfileScreen() {
-    const router = useRouter();
-    const { user } = useUser();
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const [currentCafe, setCurrentCafe] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { user } = useUser();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [currentCafe, setCurrentCafe] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadData = async () => {
-            if (!user) return;
-            try {
-                setLoading(true);
-                // Get current user from Firebase
-                const userData = await getUserById(user.id);
-                setCurrentUser(userData);
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user) return;
+      try {
+        setLoading(true);
+        const userData = await getUserById(user.id);
+        setCurrentUser(userData);
 
-                if (userData) {
-                    // Get user's reviews from Firebase
-                    const reviewsData = await getReviewsByUserId(user.id);
-                    
-                    // Fetch cafe information for each review
-                    const reviewsWithCafes = await Promise.all(
-                        reviewsData.map(async (review) => {
-                            const cafe = await getCafeById(parseInt(review.cafeId));
-                            return {
-                                ...review,
-                                cafe: cafe ? {
-                                    id: cafe.id,
-                                    name: cafe.name,
-                                    address: cafe.address,
-                                    area: cafe.area
-                                } : undefined
-                            };
-                        })
-                    );
-                    
-                    setReviews(reviewsWithCafes);
-
-                    // Get current cafe from SQLite if user is at a cafe
-                    if (userData.location) {
-                        const cafeData = await getCafeById(userData.location);
-                        setCurrentCafe(cafeData);
+        if (userData) {
+          const reviewsData = await getReviewsByUserId(user.id);
+          const reviewsWithCafes = await Promise.all(
+            reviewsData.map(async (review) => {
+              const cafe = await getCafeById(parseInt(review.cafeId));
+              return {
+                ...review,
+                cafe: cafe
+                  ? {
+                      id: cafe.id,
+                      name: cafe.name,
+                      address: cafe.address,
+                      area: cafe.area,
                     }
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadData();
-    }, [user]);
+                  : undefined,
+              };
+            })
+          );
+          setReviews(reviewsWithCafes);
 
-    if (loading) {
-        return (
-            <View className="flex-1 items-center justify-center">
-                <Text>Loading...</Text>
-            </View>
-        );
-    }
+          if (userData.location) {
+            const cafeData = await getCafeById(parseInt(userData.location));;
+            setCurrentCafe(cafeData);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, [user]);
 
-    if (!currentUser) {
-        return <Text className="p-4">User not found</Text>;
-    }
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#473319" />
+        <Text className="text-[#473319] mt-2">Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (!currentUser) {
+    return <Text className="p-4">User not found</Text>;
+  }
 
   return (
     <ScrollView className="flex-1 bg-white px-4 pt-12">
-            <View className="flex-row items-center gap-x-3 mb-4">
-        <Image
-                    source={{ uri: currentUser.avatar || 'https://i.pravatar.cc/150' }} 
-                    className="w-16 h-16 rounded-full" 
-        />
-                <View>
-        <Text className="text-xl font-bold">{currentUser.name}</Text>
-                    <Text className="text-gray-500">@{currentUser.id}</Text>
-                </View>
+      <View className="items-center mb-6">
+        <View className="relative">
+          <Image source={{ uri: currentUser.avatar || 'https://i.pravatar.cc/150' }} className="w-24 h-24 rounded-full" />
+        </View>
+        <Text className="text-xl font-bold mt-2">{currentUser.name}</Text>
+        {currentCafe && (
+          <View className="flex-row items-center mt-2">
+            <Text className="text-base text-[#473319] font-medium bg-[#f7dbb2] rounded-md px-2 py-0.5 border border-[#473319]">
+              📍{currentCafe.name}
+            </Text>
+          </View>
+        )}
+        <View className="flex-row justify-center items-center gap-x-6 mt-3">
+          <View className="flex-row items-center">
+            <Text className="text-lg text-[#3a5a91]">👥</Text>
+            <Text className="text-sm text-[#473319] ml-1">{currentUser.friends?.length ?? 0}</Text>
+          </View>
+          <View className="flex-row items-center">
+            <Text className="text-lg text-[#aa6b2c]">💬</Text>
+            <Text className="text-sm text-[#473319] ml-1">{reviews.length}</Text>
+          </View>
+        </View>
       </View>
 
-            {currentCafe ? (
-                <View className="bg-green-50 p-4 rounded-lg mb-4">
-                    <Text className="text-green-700 font-semibold mb-1">📍 Currently Studying At</Text>
-                    <Text className="text-lg font-medium">{currentCafe.name}</Text>
-                    <Text className="text-gray-600">{currentCafe.address}</Text>
-                </View>
-            ) : (
-                <View className="bg-gray-50 p-4 rounded-lg mb-4">
-                    <Text className="text-gray-700">Not currently studying anywhere</Text>
-                </View>
-            )}
+      <View className="flex-row items-center mb-2">
+        <Image source={reviewIcon} className="w-9 h-9 mr-2" />
+        <Text className="text-lg font-semibold text-left mb-2 text-[#473319]">Cafe Reviews</Text>
+      </View>
 
-      <Text className="text-lg font-semibold mb-2">Past Reviews</Text>
-            {reviews.length === 0 ? (
-                <Text className="text-gray-500">No reviews yet</Text>
-      ) : (
-                reviews.map((review) => (
-                    <View key={review.id} className="mb-4 p-4 bg-gray-50 rounded-lg">
-                        {review.cafe && (
-                            <Pressable 
-                                onPress={() => router.push(`/cafe/${review.cafeId}`)}
-                                className="mb-2"
-                            >
-                                <Text className="font-semibold text-blue-600">{review.cafe.name}</Text>
-                                <Text className="text-sm text-gray-500">{review.cafe.area}</Text>
-                            </Pressable>
-                        )}
-                        <Text className="text-sm text-gray-600">{review.comment}</Text>
-                        <View className="flex-row mt-2">
-                            {Object.entries(review.ratings).map(([key, value]) => (
-                                <Text key={key} className="text-sm text-gray-500 mr-4">
-                                    {key}: {value}
-                                </Text>
-                            ))}
+      <View className="border-2 rounded-xl border-[#473319] bg-[#f7dbb2]/20 p-4">
+        {reviews.length === 0 ? (
+          <Text className="text-gray-500">No reviews yet.</Text>
+        ) : (
+          reviews.map((review) => (
+            <View key={review.id} className="mb-4 p-4 bg-white rounded-lg border border-[#eee]">
+              {review.cafe && (
+                <Pressable onPress={() => router.push(`/cafe/${review.cafeId}`)} className="mb-2">
+                  <Text className="font-semibold text-blue-600">{review.cafe.name}</Text>
+                  <Text className="text-sm text-gray-500">{review.cafe.area}</Text>
+                </Pressable>
+              )}
+              <Text className="text-sm text-gray-800">{review.comment}</Text>
+              <View className="flex-row justify-between flex-wrap gap-y-1 mt-2">
+                <Text className="text-xs text-gray-700">⭐️ {review.ratings.ambience}</Text>
+                <Text className="text-xs text-gray-700">☕ {review.ratings.drinks}</Text>
+                <Text className="text-xs text-gray-700">🤝 {review.ratings.service}</Text>
+                <Text className="text-xs text-gray-700">🔇 {review.ratings.sound}</Text>
+              </View>
+              <Text className="text-xs text-gray-400 mt-2">
+                {new Date(review.timestamp?.toDate()).toLocaleDateString()}
+              </Text>
             </View>
-                        <Text className="text-xs text-gray-400 mt-2">
-                            {new Date(review.timestamp?.toDate()).toLocaleDateString()}
-                        </Text>
-          </View>
-        ))
-      )}
+          ))
+        )}
+      </View>
     </ScrollView>
   );
 }
