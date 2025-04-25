@@ -6,14 +6,14 @@ export interface User {
     location?: string; // cafe id
     avatar?: string;
     reviews?: [];
+    friends?: string[];
   }
-  
+
   export const users: User[] = [
-    { id: 'u1', name: 'Alice', location: '1', avatar: 'https://i.pravatar.cc/150?img=1' },
-    { id: 'u2', name: 'Bob', location: '2', avatar: 'https://i.pravatar.cc/150?img=2' },
-    { id: 'u3', name: 'Charlie', location: '1', avatar: 'https://i.pravatar.cc/150?img=3' },
-    { id: 'u4', name: 'Dana', location: undefined, avatar: 'https://i.pravatar.cc/150?img=4' },
-    { id: 'u5', name: 'Erin', location: '3', avatar: 'https://i.pravatar.cc/150?img=5' },
-    { id: 'u6', name: 'Frank', location: undefined, avatar: 'https://i.pravatar.cc/150?img=6' },
+    { id: 'u1', name: 'Alice', location: '1', avatar: 'https://i.pravatar.cc/150?img=1', friends: ['u2', 'u3'] },
+    { id: 'u2', name: 'Bob', location: '2', avatar: 'https://i.pravatar.cc/150?img=2', friends: ['u3', 'u5'] },
+    { id: 'u3', name: 'Charlie', location: '1', avatar: 'https://i.pravatar.cc/150?img=3', friends: ['u1', 'u4'] },
+    { id: 'u4', name: 'Dana', location: undefined, avatar: 'https://i.pravatar.cc/150?img=4', friends: ['u2', 'u6'] },
+    { id: 'u5', name: 'Erin', location: '3', avatar: 'https://i.pravatar.cc/150?img=5', friends: ['u1', 'u4'] },
+    { id: 'u6', name: 'Frank', location: undefined, avatar: 'https://i.pravatar.cc/150?img=6', friends: ['u3', 'u5'] },
   ];
-  
