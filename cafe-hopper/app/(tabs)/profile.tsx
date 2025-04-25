@@ -6,7 +6,7 @@ import { users } from '../data/user';
 
 const currentUser = getCurrentUser(users);
 
-const currentUserId = 'u1';
+const currentUserId = currentUser?.id;
 
 export default function ProfileScreen() {
   if (!currentUser) return <Text className="p-4">User not found</Text>;
