@@ -124,7 +124,7 @@ export default function HomeScreen() {
             onPress={() => setShowDropdown(prev => !prev)}
             className="ml-2 px-3 py-2 bg-[#f7dbb2] border border-[#473319] rounded-full"
           >
-            <Ionicons name="filter" size={18} color="#473319" />
+            <Ionicons name="filter" size={25} color="#473319" />
           </Pressable>
         </View>
 
